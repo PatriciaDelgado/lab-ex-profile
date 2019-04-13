@@ -28,10 +28,27 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre('save', function(next) {
   const user = this;
-  // TODO: password hashing if necessary
+  
+  if(!user.isModified('password')){
+    next();
+  } else {
+    bcrypt.genSalt(SALT_WORK_FACTOR)
+      .then(salt => {
+        return bcrypt.hash(user.password, salt)
+          .then(hash => {
+            user.password = hash;
+            next();
+          })
+      })
+      .catch(error => next(error))
+  }
 });
 
-// TODO: checkPassword method
+userSchema.methods.checkPassword = function(password){
+  return bcrypt.compare(password, this.password)
+}
+
+
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;

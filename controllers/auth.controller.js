@@ -17,7 +17,15 @@ module.exports.doRegister = (req, res, next) => {
 
   User.findOne({ email: req.body.email })
     .then(user => {
-      // TODO: save user & redirect to login
+      if(user) {
+        renderWithErrors({
+          email: 'email already register'
+        })
+      } else {
+        user = new User(req.body);
+        return user.save()
+        .then(user => res.redirect('/login'))
+      }
     })
     .catch(error => {
       if (error instanceof mongoose.Error.ValidationError) {
