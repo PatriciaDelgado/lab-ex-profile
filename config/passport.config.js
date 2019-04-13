@@ -4,19 +4,36 @@ const LocalStrategy = require('passport-local').Strategy;
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
  
 passport.serializeUser((user, next) => {
-  // TODO: write user unique information to cookie
+  next(null, user.id);
 })
 
 passport.deserializeUser((id, next) => {
-  // TODO: read user from cookie
+  User.findById(id)
+    .then( user => next(null, user) )
+    .catch( next )
 })
 
 passport.use('local-auth', new LocalStrategy({
   usernameField: 'email',
   passwordField: 'password'
 }, (email, password, next) => {
-  // TODO: authenticate user using local auth, remember you need find user from and check his password,
-  // then call next passing error or authenticated user or validation feedback next(error, user, validations)
+  User.findOne({ email: email })
+    .then( user => {
+      if (!user) {
+        next(null, null,{password:"email y contraseña invalida"})
+      } else {
+        return user.checkPassword(password)
+        .then(match => {
+          if(!match){
+            next(null, null,{password:"email y contraseña invalida"})
+          } else {
+            next(null, user)
+          }
+        })
+
+      }
+    })
+
 }));
 
 /*

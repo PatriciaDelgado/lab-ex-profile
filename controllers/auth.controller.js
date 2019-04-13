@@ -41,7 +41,24 @@ module.exports.login = (req, res, next) => {
 }
 
 module.exports.doLogin = (req, res, next) => {
-  // TODO: passport local-auth authentication & redirect to /profile
+  passport.authenticate("local-auth", (error, user, validation)=> {
+    if (error){
+      next(error)
+    } else if (!user){
+      res.render("auth/login", {
+        user : req.body,
+        errors: validation,
+      })
+    }else {
+      return req.login(user, (error)=> {
+        if (error){
+          next(error)
+        }else {
+          res.redirect("/users")
+        }
+      })
+    }
+  }) (req, res, next); 
 }
 
 module.exports.loginWithGoogleCallback = (req, res, next) => {
